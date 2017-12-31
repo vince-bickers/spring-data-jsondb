@@ -24,20 +24,21 @@ public class JsonDBRepositoryImpl<T, ID extends Serializable> implements JsonDBR
     public JsonDBRepositoryImpl(Class<T> domainClass, JsonDBTemplate template) {
         this.clazz = domainClass;
         this.template = template;
+
+        if (!template.collectionExists(clazz)) {
+            template.createCollection(clazz);
+        }
     }
 
     @Override
     public <S extends T> S save(S s) {
-        if (!template.collectionExists(s.getClass())) {
-            template.createCollection(s.getClass());
-        }
         template.upsert(s);
         return s;
     }
 
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> iterable) {
-        iterable.forEach(S -> save(S));
+        iterable.forEach(this::save);
         return iterable;
     }
 
@@ -75,27 +76,30 @@ public class JsonDBRepositoryImpl<T, ID extends Serializable> implements JsonDBR
 
     @Override
     public void delete(ID id) {
-        template.remove(id, clazz);
+        T object = findOne(id);
+        if (object != null) {
+            delete(object);
+        }
     }
 
     @Override
     public void delete(T t) {
-        template.dropCollection(t.getClass());
+        template.remove(t, t.getClass());
     }
 
     @Override
     public void delete(Iterable<? extends T> iterable) {
-        iterable.forEach(T -> delete(T));
+        iterable.forEach(this::delete);
     }
 
     @Override
     public void deleteAll() {
-        template.dropCollection(clazz);
+        delete(findAll());
     }
 
     @Override
     public Iterable<T> findAll(Sort sort) {
-        throw new RuntimeException("Not implemented");
+        throw new RuntimeException("Sort not yet implemented");
     }
 
     @Override
@@ -107,6 +111,6 @@ public class JsonDBRepositoryImpl<T, ID extends Serializable> implements JsonDBR
         long pageOffset = pageable.getOffset();
         long total = pageOffset + results.size() + (results.size() == pageSize ? pageSize : 0);
 
-        return new PageImpl<T>(results, pageable, total);
+        return new PageImpl<>(results, pageable, total);
     }
 }
