@@ -1,11 +1,14 @@
 # spring-data-jsondb
 Enables Spring Data support for JsonDB
 
-# Usage
-- Download and install this project
+# Installation
+- Install this project to your local maven repository
 
-      git clone https://github.com/vince-bickers/spring-data-jsondb
+      git clone https://github.com/vince-bickers/spring-data-jsondb.git
+      cd spring-data-jsondb
+      mvn clean install
       
+# Usage
 - Declare the dependency in your pom
 
         <dependency>
